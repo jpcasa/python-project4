@@ -193,10 +193,17 @@ class Engine:
                 name_error = 'Please enter a valid name: '
 
 
-    def view_entries(self):
+    def view_entries(self, searched=None, entries=None):
         """View Entries."""
         # Get Entries
-        entries = Entry.select().order_by(Entry.timestamp.desc())
+        if not searched:
+            entries = Entry.select().order_by(Entry.timestamp.desc())
+        elif searched and not entries:
+            print('No records found with this criteria')
+            raw_input('Pres [Enter] to continue: ')
+            next_action = 'b'
+
+        # Loop Counter
         count = 0
 
         # Check if Entries
@@ -219,7 +226,9 @@ class Engine:
                     msg = '([P]revious/[N]ext/[D]elete/[E]dit/[B]ack)'
 
                 # Ask for action
-                next_action = raw_input('Action: {}: '.format(msg)).lower().strip()
+                if not next_action:
+                    next_action = raw_input('Action: {}: '.format(msg)).lower().strip()
+
                 if next_action == 'n':
                     count += 1
                 elif next_action == 'p':
@@ -234,10 +243,11 @@ class Engine:
                     count = len(entries) + 1
 
         else:
-            # Give the user the option to create a new record
-            print('You haven\'t created any records yet...')
-            if raw_input('Create Entry? [Yn]: ') != 'n':
-                self.add_entry()
+            if not searched:
+                # Give the user the option to create a new record
+                print('You haven\'t created any records yet...')
+                if raw_input('Create Entry? [Yn]: ') != 'n':
+                    self.add_entry()
 
 
     def search_entries(self):
@@ -250,9 +260,36 @@ class Engine:
         print('b) Date')
         print('c) Time Spent')
         print('d) Search Term')
-        print('d) Date Range\n')
+        print('d) Date Range')
+        print('q) Back to Main Menu\n')
 
-        raw_input('Enter your choice: ')
+        msg = 'Choose the criteria to search: '
+        search_action = raw_input(msg).lower().strip()
+
+        if search_action == 'a':
+            search_query = raw_input('Enter Employee Name: ').strip()
+            self.view_entries('query', self.search_tasks('name', search_query))
+        elif search_action == 'b':
+            search_query = raw_input('Enter Date (d/m/Y): ').strip()
+            self.view_entries('query', self.search_tasks('timestamp', search_query))
+        elif search_action == 'c':
+            search_query = raw_input('Enter minutes: ').strip()
+            self.view_entries('query', self.search_tasks('minutes', search_query))
+
+
+
+    def search_tasks(self, search_by, *search_query):
+        """Search Tasks with Criteria"""
+        # Get Entries
+        entries = Entry.select().order_by(Entry.timestamp.desc())
+
+        # Check Criteria
+        if search_by == 'name':
+            return entries.where(Entry.name==search_query[0])
+        elif search_by == 'timestamp':
+            return entries.where(Entry.timestamp==search_query[0])
+        elif search_by == 'minutes':
+            return entries.where(Entry.minutes==search_query[0])
 
 
     def validate_input(self, what, value):
