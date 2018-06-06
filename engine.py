@@ -11,7 +11,7 @@ db = SqliteDatabase('employees.db')
 
 class Entry(Model):
     name = CharField(max_length=255)
-    task = CharField(max_length=535)
+    task = CharField(max_length=535, unique=True)
     minutes = IntegerField()
     notes = TextField(default="")
     timestamp = CharField(default=datetime.date.today().strftime('%d/%m/%Y'))
@@ -56,27 +56,40 @@ class Engine:
                 self.main_menu[choice]()
 
 
-    def add_entry(self):
+    def add_entry(self, entry=None):
         """Add an Entry."""
 
         finished = False
-        name, task = (None, None)
+        if not entry:
+            name, task, notes = (None, None, None)
+            minutes = 0
+        else:
+            name = entry.name
+            task = entry.task
+            minutes = entry.minutes
+            notes = entry.notes
+
+        # Declare Errors
         name_error, task_error, minutes_error = (None, None, None)
-        minutes = 0
 
         # Creation Loop
         while finished == False:
 
             # Clear
             self.clear()
-
-            print("Task Creator (Press 'q' to return)\n")
+            if not entry:
+                print("Task Creator (Press 'q' to return)\n")
+            else:
+                print("Edit Task")
 
             # Check for name
             if not name and not name_error:
                 name = raw_input("Please enter your name: ").strip()
             elif name_error:
                 name = raw_input(name_error).strip()
+            elif entry:
+                msg = "Please enter your name[{}]: ".format(entry.name)
+                name = raw_input(msg).strip() or entry.name
             else:
                 print("Please enter your name: {}".format(name))
 
@@ -93,12 +106,16 @@ class Engine:
                     name_error = None
 
                 # Check for task
-                if not task:
+                if not task and not task_error:
                     task = raw_input("Please enter the task you worked on: ").strip()
+                elif entry:
+                    msg = "Please enter the task you worked on[{}]: ".format(entry.task)
+                    task = raw_input(msg).strip() or entry.task
                 elif task_error:
                     task = raw_input(task_error).strip()
                 else:
                     print("Please enter the task you worked on: {}".format(task))
+
                 # Check for Quit Option
                 if task == 'q':
                     finished = True
@@ -111,8 +128,60 @@ class Engine:
                     if task_error:
                         task_error = None
 
-                    if not minutes:
-                        task = raw_input("Please enter the number of minutes you took: ").strip()
+                    # Handle Minute Input
+                    if not minutes and not minutes_error:
+                        minutes = raw_input("Please enter the number of minutes you took: ").strip()
+                    elif entry:
+                        msg = "Please enter the number of minutes you took[{}]: ".format(entry.minutes)
+                        minutes = raw_input(msg).strip() or entry.minutes
+                    elif minutes_error:
+                        minutes = raw_input(minutes_error).strip()
+                    else:
+                        print("Please enter the number of minutes you took: {}".format(minutes))
+
+                    # Check for Quit Option
+                    if minutes == 'q':
+                        finished = True
+                        break
+
+                    if self.validate_input('int', minutes):
+
+                        # Reset Minutes Error
+                        if minutes_error:
+                            minutes_error = None
+
+                        # Display Current Notes
+                        if entry and notes != '':
+                            print('Current Notes: {}'.format(entry.notes))
+                            notes = raw_input("Edit Notes: ").strip() or entry.notes
+                        else:
+                            # Asks for Optional Notes
+                            notes = raw_input("Enter some notes (Optional): ").strip() or ""
+
+                        # Last check
+                        if raw_input('Save entry? [Yn] ').lower() != 'n':
+
+                            # Check if Edit or Add
+                            if not entry:
+                                # Create Entry in DB
+                                Entry.create(
+                                name=name,
+                                task=task,
+                                minutes=minutes,
+                                notes=notes)
+                            else:
+                                Entry.update(
+                                    name=name,
+                                    task=task,
+                                    minutes=minutes,
+                                    notes=notes
+                                ).where(
+                                    Entry.task == task
+                                ).execute()
+
+                            # Finish Loop
+                            finished = True
+                            break
 
                 # Task Input Error
                 else:
@@ -124,15 +193,66 @@ class Engine:
                 name_error = 'Please enter a valid name: '
 
 
-
     def view_entries(self):
         """View Entries."""
-        pass
+        # Get Entries
+        entries = Entry.select().order_by(Entry.timestamp.desc())
+        count = 0
+
+        # Check if Entries
+        if len(entries) > 0:
+            while count < len(entries):
+
+                # Clear
+                self.clear()
+                # Display Cool Entry
+                self.display_entry(entries[count])
+
+                # User options
+                if count == 0 and len(entries) == 1:
+                    msg = '([D]elete/[E]dit/[B]ack)'
+                elif count == 0 and len(entries) > 1:
+                    msg = '([N]ext/[D]elete/[E]dit/[B]ack)'
+                elif count == (len(entries) - 1):
+                    msg = '([P]revious/[D]elete/[E]dit/[B]ack)'
+                else:
+                    msg = '([P]revious/[N]ext/[D]elete/[E]dit/[B]ack)'
+
+                # Ask for action
+                next_action = raw_input('Action: {}: '.format(msg)).lower().strip()
+                if next_action == 'n':
+                    count += 1
+                elif next_action == 'p':
+                    count -= 1
+                elif next_action == 'd':
+                    if self.delete_entry(entries[count]):
+                        count = len(entries) + 1
+                elif next_action == 'e':
+                    self.add_entry(entries[count])
+                    count = len(entries) + 1
+                else:
+                    count = len(entries) + 1
+
+        else:
+            # Give the user the option to create a new record
+            print('You haven\'t created any records yet...')
+            if raw_input('Create Entry? [Yn]: ') != 'n':
+                self.add_entry()
 
 
     def search_entries(self):
         """Search Entries."""
-        pass
+        self.clear()
+
+        # Options
+        print('Search Entries By:\n')
+        print('a) Employee')
+        print('b) Date')
+        print('c) Time Spent')
+        print('d) Search Term')
+        print('d) Date Range\n')
+
+        raw_input('Enter your choice: ')
 
 
     def validate_input(self, what, value):
@@ -142,3 +262,31 @@ class Engine:
                 return True
             else:
                 return False
+        elif what == 'int':
+            try:
+                int(value)
+                return True
+            except ValueError:
+                return False
+
+
+    def delete_entry(self, entry):
+        """Delete an entry."""
+        if raw_input('Are you sure? [Yn]: ').lower().strip() == 'y':
+            entry.delete_instance()
+            print('Entry deleted!')
+            raw_input('Go back to main menu [Enter]: ')
+            return True
+        return False
+
+
+    def display_entry(self, entry):
+        print("Showing all tasks: \n")
+        print(entry.timestamp)
+        print('='*len(entry.timestamp))
+        print('Task Author: {}'.format(entry.name))
+        print('Task: {}'.format(entry.task))
+        print('Minutes Spent: {}'.format(entry.minutes))
+        if entry.notes != "":
+            print('Notes (Optional): {}'.format(entry.notes))
+        print('')
