@@ -39,9 +39,8 @@ class Engine:
         db.connect()
         db.create_tables([Entry], safe=True)
 
-    def menu_loop(self):
+    def menu_loop(self, choice=None):
         """Show the menu."""
-        choice = None
 
         while choice != 'q':
             self.clear()
@@ -56,6 +55,22 @@ class Engine:
                 self.main_menu[choice]()
             elif choice == 'q':
                 self.clear()
+
+
+    def get_all_entries(self):
+        return Entry.select().order_by(Entry.id.desc())
+
+
+    def get_last_entry(self):
+        return Entry.select().order_by(Entry.id.desc()).get()
+
+
+    def add_simple_entry(self, name, task, minutes, notes):
+        Entry.create(
+        name=name,
+        task=task,
+        minutes=minutes,
+        notes=notes)
 
 
     def add_entry(self, entry=None):
@@ -305,15 +320,14 @@ class Engine:
     def validate_input(self, what, value):
         """Validate User Input"""
         if what == 'string':
-            if value:
+            if isinstance(value, str):
                 return True
             else:
                 return False
         elif what == 'int':
-            try:
-                int(value)
+            if isinstance(value, int):
                 return True
-            except ValueError:
+            else:
                 return False
 
 
