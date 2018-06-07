@@ -11,7 +11,7 @@ db = SqliteDatabase('employees.db')
 
 class Entry(Model):
     name = CharField(max_length=255)
-    task = CharField(max_length=535, unique=True)
+    task = CharField(max_length=535)
     minutes = IntegerField()
     notes = TextField(default="")
     timestamp = CharField(default=datetime.date.today().strftime('%d/%m/%Y'))
@@ -35,9 +35,12 @@ class Engine:
         os.system('cls' if os.name == 'nt' else 'clear')
 
 
-    def initialize(self):
-        db.connect()
-        db.create_tables([Entry], safe=True)
+    def initialize(self, daba=None):
+        try:
+            db.connect()
+            db.create_tables([Entry], safe=True)
+        except OperationalError:
+            print("DB Connection Failed")
 
     def menu_loop(self, choice=None):
         """Show the menu."""
@@ -73,10 +76,9 @@ class Engine:
         notes=notes)
 
 
-    def add_entry(self, entry=None):
+    def add_entry(self, entry=None, finished=False):
         """Add an Entry."""
 
-        finished = False
         if not entry:
             name, task, notes = (None, None, None)
             minutes = 0
@@ -291,7 +293,7 @@ class Engine:
         elif search_action == 'b':
             search_query = raw_input('Enter Date (d/m/Y): ').strip()
             self.view_entries('query', self.search_tasks('timestamp', search_query))
-        elif search_action == 'c':
+        elif search_action == 'c' or self.validate_input('int', search_action):
             search_query = raw_input('Enter minutes: ').strip()
             self.view_entries('query', self.search_tasks('minutes', search_query))
         elif search_action == 'd':
@@ -325,10 +327,12 @@ class Engine:
             else:
                 return False
         elif what == 'int':
-            if isinstance(value, int):
+            try:
+                int(value)
                 return True
-            else:
+            except ValueError:
                 return False
+
 
 
     def delete_entry(self, entry):
