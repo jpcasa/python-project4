@@ -54,6 +54,8 @@ class Engine:
             if choice in self.main_menu:
                 self.clear()
                 self.main_menu[choice]()
+            elif choice == 'q':
+                self.clear()
 
 
     def add_entry(self, entry=None):
@@ -182,7 +184,9 @@ class Engine:
                             # Finish Loop
                             finished = True
                             break
-
+                        # Task Input Error
+                    else:
+                        minutes_error = 'Please enter a valid integer number: '
                 # Task Input Error
                 else:
                     task_error = 'Please enter a valid task you worked on: '
@@ -206,6 +210,8 @@ class Engine:
         # Loop Counter
         count = 0
 
+        next_action = None
+
         # Check if Entries
         if len(entries) > 0:
             while count < len(entries):
@@ -225,9 +231,8 @@ class Engine:
                 else:
                     msg = '([P]revious/[N]ext/[D]elete/[E]dit/[B]ack)'
 
-                # Ask for action
-                if not next_action:
-                    next_action = raw_input('Action: {}: '.format(msg)).lower().strip()
+
+                next_action = raw_input('Action: {}: '.format(msg)).lower().strip()
 
                 if next_action == 'n':
                     count += 1
@@ -260,7 +265,6 @@ class Engine:
         print('b) Date')
         print('c) Time Spent')
         print('d) Search Term')
-        print('d) Date Range')
         print('q) Back to Main Menu\n')
 
         msg = 'Choose the criteria to search: '
@@ -275,7 +279,9 @@ class Engine:
         elif search_action == 'c':
             search_query = raw_input('Enter minutes: ').strip()
             self.view_entries('query', self.search_tasks('minutes', search_query))
-
+        elif search_action == 'd':
+            search_query = raw_input('Enter Search Term: ').strip()
+            self.view_entries('query', self.search_tasks('search_term', search_query))
 
 
     def search_tasks(self, search_by, *search_query):
@@ -290,6 +296,10 @@ class Engine:
             return entries.where(Entry.timestamp==search_query[0])
         elif search_by == 'minutes':
             return entries.where(Entry.minutes==search_query[0])
+        elif search_by == 'search_term':
+            return entries.where(
+                Entry.task.contains(search_query[0]) |
+                Entry.notes.contains(search_query[0]))
 
 
     def validate_input(self, what, value):
