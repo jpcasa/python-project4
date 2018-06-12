@@ -1,7 +1,8 @@
 import sys
 import datetime
-import unittest
 
+from unittest.mock import patch
+import unittest
 from peewee import *
 
 import engine
@@ -21,11 +22,9 @@ class TestEngine(unittest.TestCase):
     def test_initialize(self):
         self.engine.initialize()
 
-    def test_menu_loop(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: 'q'
+    @patch('engine.input', return_value='q')
+    def test_menu_loop(self, input):
         self.engine.menu_loop('1')
-        __builtins__.raw_input = original_raw_input
         self.engine.clear()
 
     def test_display_entry(self):
@@ -38,18 +37,14 @@ class TestEngine(unittest.TestCase):
         self.engine.display_entry(last_entry)
         self.engine.clear()
 
-    def test_delete_entry(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: 'y'
+    @patch('engine.input', return_value='y')
+    def test_delete_entry(self, input):
         self.assertEqual(self.engine.delete_entry(self.entries[0]), True)
-        __builtins__.raw_input = original_raw_input
         self.engine.clear()
 
-    def test_delete_entry_false(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: 'n'
+    @patch('engine.input', return_value='n')
+    def test_delete_entry_false(self, input):
         self.assertEqual(self.engine.delete_entry(self.entries[0]), False)
-        __builtins__.raw_input = original_raw_input
         self.engine.clear()
 
     def test_validate_input_string(self):
@@ -82,47 +77,27 @@ class TestEngine(unittest.TestCase):
 
         self.engine.clear()
 
-    def test_search_entries_a(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: 'a'
+    @patch('engine.input', return_value='a')
+    def test_search_entries_a(self, input):
         self.engine.search_entries()
-        __builtins__.raw_input = original_raw_input
         self.engine.clear()
 
-    def test_search_entries_b(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: 'b'
+    @patch('engine.input', return_value='b')
+    def test_search_entries_b(self, input):
         self.engine.search_entries()
-        __builtins__.raw_input = original_raw_input
         self.engine.clear()
 
-    def test_search_entries_c(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: '10'
-        self.engine.search_entries()
-        __builtins__.raw_input = original_raw_input
-        self.engine.clear()
-
-    def test_search_entries_d(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: 'd'
-        self.engine.search_entries()
-        __builtins__.raw_input = original_raw_input
-        self.engine.clear()
-
-    def test_view_entries(self):
-        original_raw_input = __builtins__.raw_input
-        __builtins__.raw_input = lambda _: 'n'
+    @patch('engine.input', return_value='n')
+    def test_view_entries(self, input):
         self.engine.view_entries()
-        __builtins__.raw_input = original_raw_input
         self.engine.clear()
 
     #
     # def test_view_entries(self):
-    #     original_raw_input = __builtins__.raw_input
-    #     __builtins__.raw_input = lambda _: 'd'
+    #     original_input = __builtins__.input
+    #     __builtins__.input = lambda _: 'd'
     #     self.engine.view_entries()
-    #     __builtins__.raw_input = original_raw_input
+    #     __builtins__.input = original_input
     #     self.engine.clear()
 
 

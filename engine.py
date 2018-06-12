@@ -51,7 +51,7 @@ class Engine:
             print("Enter 'q' to quit.\n")
             for key, value in self.main_menu.items():
                 print('{}) {}'.format(key, value.__doc__))
-            choice = raw_input('\nAction: ').lower().strip()
+            choice = input('\nAction: ').lower().strip()
 
             if choice in self.main_menu:
                 self.clear()
@@ -103,12 +103,12 @@ class Engine:
 
             # Check for name
             if not name and not name_error:
-                name = raw_input("Please enter your name: ").strip()
+                name = input("Please enter your name: ").strip()
             elif name_error:
-                name = raw_input(name_error).strip()
+                name = input(name_error).strip()
             elif entry:
                 msg = "Please enter your name[{}]: ".format(entry.name)
-                name = raw_input(msg).strip() or entry.name
+                name = input(msg).strip() or entry.name
             else:
                 print("Please enter your name: {}".format(name))
 
@@ -126,12 +126,12 @@ class Engine:
 
                 # Check for task
                 if not task and not task_error:
-                    task = raw_input("Please enter the task you worked on: ").strip()
+                    task = input("Please enter the task you worked on: ").strip()
                 elif entry:
                     msg = "Please enter the task you worked on[{}]: ".format(entry.task)
-                    task = raw_input(msg).strip() or entry.task
+                    task = input(msg).strip() or entry.task
                 elif task_error:
-                    task = raw_input(task_error).strip()
+                    task = input(task_error).strip()
                 else:
                     print("Please enter the task you worked on: {}".format(task))
 
@@ -149,12 +149,12 @@ class Engine:
 
                     # Handle Minute Input
                     if not minutes and not minutes_error:
-                        minutes = raw_input("Please enter the number of minutes you took: ").strip()
+                        minutes = input("Please enter the number of minutes you took: ").strip()
                     elif entry:
                         msg = "Please enter the number of minutes you took[{}]: ".format(entry.minutes)
-                        minutes = raw_input(msg).strip() or entry.minutes
+                        minutes = input(msg).strip() or entry.minutes
                     elif minutes_error:
-                        minutes = raw_input(minutes_error).strip()
+                        minutes = input(minutes_error).strip()
                     else:
                         print("Please enter the number of minutes you took: {}".format(minutes))
 
@@ -172,13 +172,13 @@ class Engine:
                         # Display Current Notes
                         if entry and notes != '':
                             print('Current Notes: {}'.format(entry.notes))
-                            notes = raw_input("Edit Notes: ").strip() or entry.notes
+                            notes = input("Edit Notes: ").strip() or entry.notes
                         else:
                             # Asks for Optional Notes
-                            notes = raw_input("Enter some notes (Optional): ").strip() or ""
+                            notes = input("Enter some notes (Optional): ").strip() or ""
 
                         # Last check
-                        if raw_input('Save entry? [Yn] ').lower() != 'n':
+                        if input('Save entry? [Yn] ').lower() != 'n':
 
                             # Check if Edit or Add
                             if not entry:
@@ -221,7 +221,7 @@ class Engine:
             entries = Entry.select().order_by(Entry.timestamp.desc())
         elif searched and not entries:
             print('No records found with this criteria')
-            raw_input('Pres [Enter] to continue: ')
+            input('Pres [Enter] to continue: ')
             next_action = 'b'
 
         # Loop Counter
@@ -249,7 +249,7 @@ class Engine:
                     msg = '([P]revious/[N]ext/[D]elete/[E]dit/[B]ack)'
 
 
-                next_action = raw_input('Action: {}: '.format(msg)).lower().strip()
+                next_action = input('Action: {}: '.format(msg)).lower().strip()
 
                 if next_action == 'n':
                     count += 1
@@ -268,7 +268,7 @@ class Engine:
             if not searched:
                 # Give the user the option to create a new record
                 print('You haven\'t created any records yet...')
-                if raw_input('Create Entry? [Yn]: ') != 'n':
+                if input('Create Entry? [Yn]: ') != 'n':
                     self.add_entry()
 
 
@@ -285,19 +285,19 @@ class Engine:
         print('q) Back to Main Menu\n')
 
         msg = 'Choose the criteria to search: '
-        search_action = raw_input(msg).lower().strip()
+        search_action = input(msg).lower().strip()
 
         if search_action == 'a':
-            search_query = raw_input('Enter Employee Name: ').strip()
+            search_query = input('Enter Employee Name: ').strip()
             self.view_entries('query', self.search_tasks('name', search_query))
         elif search_action == 'b':
-            search_query = raw_input('Enter Date (d/m/Y): ').strip()
+            search_query = input('Enter Date (d/m/Y): ').strip()
             self.view_entries('query', self.search_tasks('timestamp', search_query))
         elif search_action == 'c' or self.validate_input('int', search_action):
-            search_query = raw_input('Enter minutes: ').strip()
+            search_query = input('Enter minutes: ').strip()
             self.view_entries('query', self.search_tasks('minutes', search_query))
         elif search_action == 'd':
-            search_query = raw_input('Enter Search Term: ').strip()
+            search_query = input('Enter Search Term: ').strip()
             self.view_entries('query', self.search_tasks('search_term', search_query))
 
 
@@ -337,10 +337,10 @@ class Engine:
 
     def delete_entry(self, entry):
         """Delete an entry."""
-        if raw_input('Are you sure? [Yn]: ').lower().strip() == 'y':
+        if input('Are you sure? [Yn]: ').lower().strip() == 'y':
             entry.delete_instance()
             print('Entry deleted!')
-            raw_input('Go back to main menu [Enter]: ')
+            input('Go back to main menu [Enter]: ')
             return True
         return False
 
