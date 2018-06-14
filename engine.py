@@ -252,9 +252,15 @@ class Engine:
                 next_action = input('Action: {}: '.format(msg)).lower().strip()
 
                 if next_action == 'n':
-                    count += 1
+                    if count == 0 and len(entries) == 1:
+                        pass
+                    else:
+                        count += 1
                 elif next_action == 'p':
-                    count -= 1
+                    if count == 0 and len(entries) > 1:
+                        pass
+                    else:
+                        count -= 1
                 elif next_action == 'd':
                     if self.delete_entry(entries[count]):
                         count = len(entries) + 1
